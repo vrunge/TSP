@@ -1,0 +1,14 @@
+Package: TSP
+Type: Package
+Title: Traveling salesman problem with insertion methods
+Version: 0.1.0
+Author: Vincent Runge
+Maintainer: Vincent Runge <vincent.runge@univ-evry.fr>
+Description: Algorithms for solving the traveling salesman problem in 2D plane. We here focus on the implementation of the intersection methods.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: Rcpp (>= 1.0.0)
+LinkingTo: Rcpp
+RoxygenNote: 6.1.1
+

@@ -1,0 +1,5 @@
+S3method(plot, TSP)
+exportPattern("^[[:alpha:]]+")
+importFrom("grDevices", "colorRamp", "rgb")
+importFrom("graphics", "segments", "title")
+ importFrom("stats", "dist")
