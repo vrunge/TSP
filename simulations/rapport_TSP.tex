@@ -109,8 +109,7 @@
   pdfcreator={LaTeX via pandoc}}
 
 \title{Evaluation des algorithmes heuristiques pour le voyageur de
-commerce\\
-avec les méthodes d'insertion\\
+commerce avec les méthodes d'insertion\\
 \includegraphics[width=1in,height=\textheight]{Images/logo_lamme.png}
 \includegraphics[width=1.7in,height=\textheight]{Images/logo_UEVE.png}\\
 \hspace*{0.333em}M2 Data Science Algorithmique\\
@@ -128,12 +127,31 @@ Exemple de projet}
 }
 \noindent\hrulefill
 
+Librairies à installer:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggplot2) }\CommentTok{\#ggplot}
+\FunctionTok{library}\NormalTok{(reshape2) }\CommentTok{\#melt}
+\FunctionTok{library}\NormalTok{(parallel) }\CommentTok{\#mclapply}
+\end{Highlighting}
+\end{Shaded}
+
+La librairie de ce travail est disponible sur github:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#devtools::install\_github("vrunge/TSP")}
+\FunctionTok{library}\NormalTok{(TSP)}
+\end{Highlighting}
+\end{Shaded}
+
 \hypertarget{description-du-probluxe8me-et-objectif}{%
 \section{Description du problème et
 objectif}\label{description-du-probluxe8me-et-objectif}}
 
 On tire de manière aléatoire dans le carré unité selon une loi uniforme
-\(\mathcal{N}(0,1) \times \mathcal{N}(0,1)\) un nombre \texttt{n} de
+\(\mathcal{U}(0,1) \times \mathcal{U}(0,1)\) un nombre \texttt{n} de
 villes. On donne ici un exemple avec 40 villes
 
 \begin{Shaded}
@@ -143,9 +161,9 @@ villes. On donne ici un exemple avec 40 villes
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-2-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/plot example-1.pdf}
 
-Notre premier objectif est de contruire un ``plus court chemin'' par un
+Notre premier objectif est de construire un ``plus court chemin'' par un
 \textbf{algorithme heuristique}. On comparera différentes
 \textbf{méthodes d'insertion} et on analysera leur \textbf{temps de
 calcul} numériquement.
@@ -154,11 +172,12 @@ calcul} numériquement.
 
 \begin{itemize}
 \item
-  comparer les performances en temps des algorithmes
+  comparer les performances en temps des différents algorithmes
 \item
   évaluer la distance à la solution optimale
 \item
-  pour cela coder l'algorithme de \emph{branch and bound}.
+  pour cela coder un algorithme exact (par exemple \emph{branch and
+  bound}).
 \end{itemize}
 
 On note \(c(i,j)\) le coût pour passer de la ville \(i\) à la ville
@@ -166,10 +185,10 @@ On note \(c(i,j)\) le coût pour passer de la ville \(i\) à la ville
 \((1,...,n)\) notée \((v_1,...,v_n)\) qui minimisera la longueur du
 tour:
 
-\[\sum_{i=1}^{n}c(v_i,v_{i+1})\] avec \(v_{n+1} = v_1\). Remarquez bien
-qu'une permutation contient une et une seule fois chaque indice de sorte
-que le tour est complet et passe bien par chaque ville une et une seule
-fois.
+\[\sum_{i=1}^{n}c(v_i,v_{i+1})\] avec \(v_{n+1} = v_1\) (pour revenir à
+la ville de départ). Remarquez bien qu'une permutation contient une et
+une seule fois chaque indice de sorte que le tour est complet et passe
+bien par chaque ville une et une seule fois.
 
 \hypertarget{lalgorithme-nauxeff-du-plus-proche-voisin}{%
 \section{L'algorithme naïf du plus proche
@@ -185,25 +204,16 @@ On peut répéter la procédure pour chaque ville de départ (on exécute
 ainsi \(n\) fois cette méthode) pour choisir le meilleur chemin parmi
 les \(n\) obtenus.
 
-(librairies à installer)
+Exemple avec une seule ville de départ:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{library}\NormalTok{(ggplot2) }\CommentTok{\#ggplot}
-\FunctionTok{library}\NormalTok{(reshape2) }\CommentTok{\#melt}
-\FunctionTok{library}\NormalTok{(parallel) }\CommentTok{\#mclapply}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{library}\NormalTok{(TSP)}
 \NormalTok{res1 }\OtherTok{\textless{}{-}} \FunctionTok{NN\_TSP}\NormalTok{(villes)}
-\FunctionTok{plot}\NormalTok{(}\AttributeTok{tour =}\NormalTok{ res1, }\AttributeTok{data =}\NormalTok{ villes)}
+\FunctionTok{plot}\NormalTok{(}\AttributeTok{x =}\NormalTok{ res1, }\AttributeTok{data =}\NormalTok{ villes)}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-4-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/plus proche voisin-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -212,8 +222,10 @@ les \(n\) obtenus.
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 5.807853
+## [1] 6.762322
 \end{verbatim}
+
+On remarque que la fermeture du tour est assez peu optimale\ldots{}
 
 \textbf{EXERCICE :} pour le problème euclidien du voyageur de commerce
 (inégalité triangulaire respectée), le tour optimal ne peut pas contenir
@@ -222,9 +234,9 @@ de croisement. \textbf{Le prouver!}
 \hypertarget{les-algorithmes-dinsertion}{%
 \section{Les algorithmes d'insertion}\label{les-algorithmes-dinsertion}}
 
-les algorithmes d'insertion consistent à insérer les villes l'une après
-l'autre dans un tour partiel (contenant qu'un sous-ensemble des villes)
-partant d'une ou deux villes de départ.
+les algorithmes d'insertion consistent à \textbf{insérer les villes
+l'une après l'autre dans un tour partiel} (contenant qu'un sous-ensemble
+des villes) partant d'une ou deux villes de départ.
 
 \hypertarget{lalgorithme-dinsertion-cheapest-le-moins-cher}{%
 \subsection{\texorpdfstring{L'algorithme d'insertion \emph{cheapest}
@@ -238,14 +250,16 @@ quantité
 \[c(i,k) + c(k,j) - c(i,j)\] C'est ainsi l'insertion la moins coûteuse.
 On pourra aussi répéter l'algorithme pour chacune des villes de départ.
 
+Un exemple avec une seule ville de départ:
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{res2 }\OtherTok{\textless{}{-}} \FunctionTok{greedy\_TSP\_best}\NormalTok{(villes)}
-\FunctionTok{plot}\NormalTok{(}\AttributeTok{tour =}\NormalTok{ res2, }\AttributeTok{data =}\NormalTok{ villes)}
+\FunctionTok{plot}\NormalTok{(}\AttributeTok{x =}\NormalTok{ res2, }\AttributeTok{data =}\NormalTok{ villes)}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-5-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/insert cheapest-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -254,7 +268,7 @@ On pourra aussi répéter l'algorithme pour chacune des villes de départ.
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 5.610212
+## [1] 5.625291
 \end{verbatim}
 
 \hypertarget{lalgorithme-dinsertion-nearest-le-plus-proche}{%
@@ -264,19 +278,22 @@ proche'')}{L'algorithme d'insertion nearest (``le plus proche'')}}\label{lalgori
 
 Pour un tour partiel déjà constitué on cherche la ville \(i\) et la
 ville encore non incluse \(k\) qui minimise la quantité \(c(i,k)\) :
-c'est la ville la plus proche du tour. Une fois trouvée on insert cette
-ville à sa position optimale en trouvant l'arrête \((i,j)\) qui minimise
-\(c(i,k) + c(k,j) - c(i,j)\) C'est ainsi l'insertion la plus proche. On
-pourra aussi répéter l'algorithme pour chacune des villes de départ.
+c'est \textbf{la ville la plus proche du tour}. Une fois trouvée on
+insert cette ville à sa position optimale en trouvant l'arrête \((i,j)\)
+qui minimise \(c(i,k) + c(k,j) - c(i,j)\) C'est ainsi l'insertion la
+plus proche. On pourra aussi répéter l'algorithme pour chacune des
+villes de départ.
+
+Un exemple avec une seule ville de départ:
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{res3 }\OtherTok{\textless{}{-}} \FunctionTok{greedy\_TSP\_min}\NormalTok{(villes)}
-\FunctionTok{plot}\NormalTok{(}\AttributeTok{tour =}\NormalTok{ res3, }\AttributeTok{data =}\NormalTok{ villes)}
+\FunctionTok{plot}\NormalTok{(}\AttributeTok{x =}\NormalTok{ res3, }\AttributeTok{data =}\NormalTok{ villes)}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-6-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/insert nearest-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -285,7 +302,7 @@ pourra aussi répéter l'algorithme pour chacune des villes de départ.
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 5.757644
+## [1] 6.249731
 \end{verbatim}
 
 \hypertarget{lalgorithme-dinsertion-farthest-le-plus-uxe9loignuxe9}{%
@@ -301,14 +318,16 @@ la ville \(k\) qui lui est associée. On insère cette ville \(k\) à sa
 position optimale selon le critère habituel (min de
 \(c(i,k) + c(k,j) - c(i,j)\)).
 
+Un exemple avec une seule ville de départ:
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{res4 }\OtherTok{\textless{}{-}} \FunctionTok{greedy\_TSP\_max}\NormalTok{(villes)}
-\FunctionTok{plot}\NormalTok{(}\AttributeTok{tour =}\NormalTok{ res4, }\AttributeTok{data =}\NormalTok{ villes)}
+\FunctionTok{plot}\NormalTok{(}\AttributeTok{x =}\NormalTok{ res4, }\AttributeTok{data =}\NormalTok{ villes)}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-7-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/insert farthest-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -317,17 +336,17 @@ position optimale selon le critère habituel (min de
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 5.469176
+## [1] 5.27257
 \end{verbatim}
 
 Affichés tous ensemble :
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-8-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/plot all-1.pdf}
 
 Il est possible dans ce cadre eucliden d'obtenir une
 \href{http://www.cs.albany.edu/~res/tsp_sicomp_1977.pdf}{bornes sur la
-longueur du tour}. Ces algorithmes heuristiques sont donc des
-algorithmes d'approximation (sauf peut-être pour \emph{farthest})!
+longueur du tour}. \textbf{Ces algorithmes heuristiques sont donc des
+algorithmes d'approximation} (sauf peut-être pour \emph{farthest})!
 
 \[algo(cheapest) \le 2 \,algo(opt)\]
 
@@ -350,18 +369,18 @@ On répète 100 fois les 4 algorithmes sur des données générées par
 ## No id variables; using all as measure variables
 \end{verbatim}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-10-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/plot res violon-1.pdf}
 
 Rang moyen :
 
 \begin{verbatim}
 ##   NN best  min  max 
-## 3.46 2.46 3.02 1.06
+## 3.26 2.52 3.17 1.05
 \end{verbatim}
 
 \hypertarget{pour-une-distribution-normale-des-villes}{%
-\subsection{Pour une distribution normale des
-villes}\label{pour-une-distribution-normale-des-villes}}
+\subsection{Pour une distribution normale des villes
+?}\label{pour-une-distribution-normale-des-villes}}
 
 On répète 100 fois les 4 algorithmes sur des données normales générées
 par \(\mathcal{N}(0,1) \times \mathcal{N}(0,1)\)
@@ -370,13 +389,13 @@ par \(\mathcal{N}(0,1) \times \mathcal{N}(0,1)\)
 ## No id variables; using all as measure variables
 \end{verbatim}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-13-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/plot violon-1.pdf}
 
 Rang moyen :
 
 \begin{verbatim}
-##    NN  best   min   max 
-## 3.440 2.515 3.015 1.030
+##   NN best  min  max 
+## 3.44 2.48 3.04 1.04
 \end{verbatim}
 
 \textbf{EXERCICE :} Comment évoluent ces résultats si on répète chaque
@@ -388,13 +407,13 @@ REPONSE (distribution uniforme):
 ## No id variables; using all as measure variables
 \end{verbatim}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-16-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-2-1.pdf}
 
 Rang moyen :
 
 \begin{verbatim}
-##    NN  best   min   max 
-## 2.930 2.665 3.390 1.015
+##   NN best  min  max 
+## 2.72 2.60 3.66 1.02
 \end{verbatim}
 
 \hypertarget{temps-de-calcul}{%
@@ -496,7 +515,6 @@ On lance la simulation sur plusieurs coeurs.
 
 \ControlFlowTok{for}\NormalTok{(n }\ControlFlowTok{in}\NormalTok{ my\_n\_vector)}
 \NormalTok{\{}
-  \FunctionTok{print}\NormalTok{(n)}
 \NormalTok{  liste1 }\OtherTok{\textless{}{-}} \FunctionTok{mclapply}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\NormalTok{p, }\AttributeTok{FUN =}\NormalTok{ one.simu\_time\_TSP,}
                       \AttributeTok{data =} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n), n, }\DecValTok{2}\NormalTok{),}
                      \AttributeTok{algo =} \StringTok{"NN"}\NormalTok{,}
@@ -511,12 +529,10 @@ On lance la simulation sur plusieurs coeurs.
                      \AttributeTok{data =} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n), n, }\DecValTok{2}\NormalTok{),}
                      \AttributeTok{algo =} \StringTok{"min"}\NormalTok{,}
                      \AttributeTok{mc.cores =}\NormalTok{ nbCores)}
-
 \NormalTok{  liste4 }\OtherTok{\textless{}{-}} \FunctionTok{mclapply}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\NormalTok{p, }\AttributeTok{FUN =}\NormalTok{ one.simu\_time\_TSP,}
                      \AttributeTok{data =} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n), n, }\DecValTok{2}\NormalTok{),}
                      \AttributeTok{algo =} \StringTok{"max"}\NormalTok{,}
                      \AttributeTok{mc.cores =}\NormalTok{ nbCores)}
-
 
 \NormalTok{  df[j ,] }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"NN"}\NormalTok{, n, }\FunctionTok{do.call}\NormalTok{(cbind, liste1))}
 \NormalTok{  df[j}\SpecialCharTok{+}\DecValTok{1}\NormalTok{ ,] }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"best"}\NormalTok{, n, }\FunctionTok{do.call}\NormalTok{(cbind, liste2))}
@@ -524,55 +540,7 @@ On lance la simulation sur plusieurs coeurs.
 \NormalTok{  df[j}\SpecialCharTok{+}\DecValTok{3}\NormalTok{ ,] }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"max"}\NormalTok{, n, }\FunctionTok{do.call}\NormalTok{(cbind, liste4))}
 \NormalTok{  j }\OtherTok{\textless{}{-}}\NormalTok{ j }\SpecialCharTok{+} \DecValTok{4}
 \NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
 
-\begin{verbatim}
-## [1] 10
-## [1] 11
-## [1] 11
-## [1] 12
-## [1] 13
-## [1] 13
-## [1] 14
-## [1] 15
-## [1] 16
-## [1] 17
-## [1] 18
-## [1] 19
-## [1] 20
-## [1] 21
-## [1] 22
-## [1] 24
-## [1] 25
-## [1] 27
-## [1] 28
-## [1] 30
-## [1] 32
-## [1] 33
-## [1] 35
-## [1] 38
-## [1] 40
-## [1] 42
-## [1] 45
-## [1] 47
-## [1] 50
-## [1] 53
-## [1] 56
-## [1] 60
-## [1] 63
-## [1] 67
-## [1] 71
-## [1] 75
-## [1] 79
-## [1] 84
-## [1] 89
-## [1] 94
-## [1] 100
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
 \NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(df, }\AttributeTok{id.vars =} \FunctionTok{c}\NormalTok{(}\StringTok{"type"}\NormalTok{,}\StringTok{"n"}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
@@ -605,12 +573,12 @@ tranformations techniques :
 
 \begin{verbatim}
 ##      type                 n             variable        value          
-##  Length:8200        Min.   : 10.00   Min.   : 1.0   Min.   :0.0001559  
-##  Class :character   1st Qu.: 18.00   1st Qu.:13.0   1st Qu.:0.0021248  
-##  Mode  :character   Median : 32.00   Median :25.5   Median :0.0082276  
-##                     Mean   : 39.49   Mean   :25.5   Mean   :0.0459139  
-##                     3rd Qu.: 56.00   3rd Qu.:38.0   3rd Qu.:0.0453522  
-##                     Max.   :100.00   Max.   :50.0   Max.   :0.7414269
+##  Length:8200        Min.   : 10.00   Min.   : 1.0   Min.   :0.0001569  
+##  Class :character   1st Qu.: 18.00   1st Qu.:13.0   1st Qu.:0.0020363  
+##  Mode  :character   Median : 32.00   Median :25.5   Median :0.0088866  
+##                     Mean   : 39.49   Mean   :25.5   Mean   :0.0481867  
+##                     3rd Qu.: 56.00   3rd Qu.:38.0   3rd Qu.:0.0466209  
+##                     Max.   :100.00   Max.   :50.0   Max.   :0.8117151
 \end{verbatim}
 
 \begin{Shaded}
@@ -652,7 +620,7 @@ On trace différentes courbes.
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{rapport_TSP_files/figure-latex/unnamed-chunk-23-1.pdf}
+\includegraphics{rapport_TSP_files/figure-latex/plot simu results-1.pdf}
 
 On calcule les valeurs des coefficients directeurs.
 
@@ -672,19 +640,19 @@ Pour NN :
 ## lm(formula = log(value) ~ log(n), data = R1)
 ## 
 ## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.50838 -0.28623 -0.07654  0.10451  1.02353 
+##     Min      1Q  Median      3Q     Max 
+## -0.4894 -0.3010 -0.1811  0.1088  2.3405 
 ## 
 ## Coefficients:
-##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) -12.16390    0.35264  -34.49   <2e-16 ***
-## log(n)        1.68727    0.09888   17.06   <2e-16 ***
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) -11.7878     0.4568  -25.81  < 2e-16 ***
+## log(n)        1.6001     0.1281   12.49 7.65e-15 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.4063 on 37 degrees of freedom
-## Multiple R-squared:  0.8873, Adjusted R-squared:  0.8842 
-## F-statistic: 291.2 on 1 and 37 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.5263 on 37 degrees of freedom
+## Multiple R-squared:  0.8084, Adjusted R-squared:  0.8032 
+## F-statistic: 156.1 on 1 and 37 DF,  p-value: 7.654e-15
 \end{verbatim}
 
 \begin{Shaded}
@@ -695,7 +663,7 @@ Pour NN :
 
 \begin{verbatim}
 ## (Intercept)      log(n) 
-##  -12.163902    1.687271
+##  -11.787845    1.600138
 \end{verbatim}
 
 Pour best :
@@ -715,18 +683,18 @@ Pour best :
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -0.21754 -0.10616 -0.03652  0.09429  0.41542 
+## -0.50370 -0.14427 -0.00081  0.08055  0.64943 
 ## 
 ## Coefficients:
 ##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) -11.90923    0.12634  -94.26   <2e-16 ***
-## log(n)        2.44105    0.03543   68.91   <2e-16 ***
+## (Intercept) -11.59043    0.20120  -57.61   <2e-16 ***
+## log(n)        2.37151    0.05642   42.04   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.1456 on 37 degrees of freedom
-## Multiple R-squared:  0.9923, Adjusted R-squared:  0.9921 
-## F-statistic:  4748 on 1 and 37 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.2318 on 37 degrees of freedom
+## Multiple R-squared:  0.9795, Adjusted R-squared:  0.9789 
+## F-statistic:  1767 on 1 and 37 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
 \begin{Shaded}
@@ -737,7 +705,7 @@ Pour best :
 
 \begin{verbatim}
 ## (Intercept)      log(n) 
-##  -11.909229    2.441047
+##  -11.590432    2.371513
 \end{verbatim}
 
 Pour min :
@@ -757,18 +725,18 @@ Pour min :
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -0.22180 -0.16198 -0.03538  0.11417  0.34868 
+## -0.48062 -0.15813 -0.00262  0.10151  0.95505 
 ## 
 ## Coefficients:
 ##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) -12.13803    0.14833  -81.83   <2e-16 ***
-## log(n)        2.29782    0.04159   55.25   <2e-16 ***
+## (Intercept) -11.95913    0.25381  -47.12   <2e-16 ***
+## log(n)        2.26161    0.07117   31.78   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.1709 on 37 degrees of freedom
-## Multiple R-squared:  0.988,  Adjusted R-squared:  0.9877 
-## F-statistic:  3052 on 1 and 37 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.2925 on 37 degrees of freedom
+## Multiple R-squared:  0.9647, Adjusted R-squared:  0.9637 
+## F-statistic:  1010 on 1 and 37 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
 \begin{Shaded}
@@ -779,7 +747,7 @@ Pour min :
 
 \begin{verbatim}
 ## (Intercept)      log(n) 
-##  -12.138032    2.297816
+##  -11.959131    2.261613
 \end{verbatim}
 
 Pour max :
@@ -799,18 +767,18 @@ Pour max :
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -0.29502 -0.16687 -0.03215  0.13975  0.36329 
+## -0.54206 -0.12442 -0.07636  0.12240  1.21017 
 ## 
 ## Coefficients:
 ##              Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) -12.13695    0.16457  -73.75   <2e-16 ***
-## log(n)        2.30630    0.04614   49.98   <2e-16 ***
+## (Intercept) -11.97605    0.30046  -39.86   <2e-16 ***
+## log(n)        2.26425    0.08425   26.88   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.1896 on 37 degrees of freedom
-## Multiple R-squared:  0.9854, Adjusted R-squared:  0.985 
-## F-statistic:  2498 on 1 and 37 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.3462 on 37 degrees of freedom
+## Multiple R-squared:  0.9513, Adjusted R-squared:   0.95 
+## F-statistic: 722.3 on 1 and 37 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
 \begin{Shaded}
@@ -821,7 +789,7 @@ Pour max :
 
 \begin{verbatim}
 ## (Intercept)      log(n) 
-##  -12.136954    2.306298
+##  -11.976050    2.264249
 \end{verbatim}
 
 \hypertarget{amuxe9lioration-de-tour-par-2-opt-et-3-opt}{%
@@ -847,6 +815,10 @@ Bound}}{Algorithme Branch and Bound}}\label{algorithme-branch-and-bound}}
 \item
   Evaluer le coefficient d'approximation des méthodes dans le cas d'une
   répartition uniforme et normale des villes
+\item
+  Trouver pour un temps maximal donné et un nombre de villes donnés
+  quelle est la meilleure méthode à utiliser parmis toutes celles
+  proposées !
 \end{itemize}
 
 \end{document}

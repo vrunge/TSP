@@ -1,7 +1,6 @@
 ---
 title: | 
-  | Evaluation des algorithmes heuristiques pour le voyageur de commerce
-  | avec les méthodes d'insertion
+  | Evaluation des algorithmes heuristiques pour le voyageur de commerce avec les méthodes d'insertion
   | ![](Images/logo_lamme.png){width=1in}  ![](Images/logo_UEVE.png){width=1.7in}
   |  M2 Data Science Algorithmique
   | Exemple de projet
@@ -21,36 +20,52 @@ urlcolor: blue
 \noindent\hrulefill
 
 
+Librairies à installer:
+
+```{r packages}
+library(ggplot2) #ggplot
+library(reshape2) #melt
+library(parallel) #mclapply
+```
+
+La librairie de ce travail est disponible sur github:
+
+```{r my package}
+#devtools::install_github("vrunge/TSP")
+library(TSP)
+```
+
+
+
 # Description du problème et objectif
 
-On tire de manière aléatoire dans le carré unité selon une loi uniforme $\mathcal{N}(0,1) \times \mathcal{N}(0,1)$ un nombre `n` de villes. On donne ici un exemple avec 40 villes
+On tire de manière aléatoire dans le carré unité selon une loi uniforme $\mathcal{U}(0,1) \times \mathcal{U}(0,1)$ un nombre `n` de villes. On donne ici un exemple avec 40 villes
 
-```{r}
+```{r example}
 n <- 40
 villes <- matrix(runif(2*n), n, 2)
 ```
 
 
-```{r, echo=FALSE}
+```{r plot example, echo=FALSE}
 plot(villes[,1], villes[,2], xlim = c(0,1), ylim = c(0,1), xlab = "", ylab = "", asp=1, pty ="s")
 ```
 
-Notre premier objectif est de contruire un "plus court chemin" par un **algorithme heuristique**. On comparera différentes **méthodes d'insertion** et on analysera leur **temps de calcul** numériquement. 
+Notre premier objectif est de construire un "plus court chemin" par un **algorithme heuristique**. On comparera différentes **méthodes d'insertion** et on analysera leur **temps de calcul** numériquement. 
 
 **Nos objectifs : **
 
-- comparer les performances en temps des algorithmes
+- comparer les performances en temps des différents algorithmes
 
 - évaluer la distance à la solution optimale 
 
-- pour cela coder l'algorithme de *branch and bound*. 
+- pour cela coder un algorithme exact (par exemple *branch and bound*). 
 
 
 On note $c(i,j)$ le coût pour passer de la ville $i$ à la ville $j$. Notre objectif est de trouver la permutation des indices $(1,...,n)$ notée $(v_1,...,v_n)$ qui minimisera la longueur du tour:
 
 $$\sum_{i=1}^{n}c(v_i,v_{i+1})$$
-avec $v_{n+1} = v_1$. Remarquez bien qu'une permutation contient une et une seule fois chaque indice de sorte que le tour est complet et passe bien par chaque ville une et une seule fois.
-
+avec $v_{n+1} = v_1$ (pour revenir à la ville de départ). Remarquez bien qu'une permutation contient une et une seule fois chaque indice de sorte que le tour est complet et passe bien par chaque ville une et une seule fois.
 
 
 # L'algorithme naïf du plus proche voisin
@@ -59,26 +74,22 @@ C'est la méthode la plus simple. Elle consiste à partir d'une ville $i$ et de 
 
 On peut répéter la procédure pour chaque ville de départ (on exécute ainsi $n$ fois cette méthode) pour choisir le meilleur chemin parmi les $n$ obtenus. 
 
-(librairies à installer)
-```{r}
-library(ggplot2) #ggplot
-library(reshape2) #melt
-library(parallel) #mclapply
-```
+Exemple avec une seule ville de départ:
 
-```{r}
-library(TSP)
+```{r plus proche voisin}
 res1 <- NN_TSP(villes)
-plot(tour = res1, data = villes)
+plot(x = res1, data = villes)
 (t1 <- tour_length(res1, villes))
 ```
+
+On remarque que la fermeture du tour est assez peu optimale...
 
 **EXERCICE :** pour le problème euclidien du voyageur de commerce (inégalité triangulaire respectée), le tour optimal ne peut pas contenir de croisement. **Le prouver!**
 
 
 # Les algorithmes d'insertion
 
-les algorithmes d'insertion consistent à insérer les villes l'une après l'autre dans un tour partiel (contenant qu'un sous-ensemble des villes) partant d'une ou deux villes de départ.
+les algorithmes d'insertion consistent à **insérer les villes l'une après l'autre dans un tour partiel** (contenant qu'un sous-ensemble des villes) partant d'une ou deux villes de départ.
 
 ## L'algorithme d'insertion *cheapest* ("le moins cher")
 
@@ -87,22 +98,25 @@ Pour un tour partiel déjà constitué on cherche l'arrête (le couple de villes
 $$c(i,k) + c(k,j) - c(i,j)$$
 C'est ainsi l'insertion la moins coûteuse. On pourra aussi répéter l'algorithme pour chacune des villes de départ.
 
-```{r}
+Un exemple avec une seule ville de départ: 
+
+```{r insert cheapest}
 res2 <- greedy_TSP_best(villes)
-plot(tour = res2, data = villes)
+plot(x = res2, data = villes)
 (t2 <- tour_length(res2, villes))
 ```
 
 
-
 ## L'algorithme d'insertion *nearest* ("le plus proche")
 
-Pour un tour partiel déjà constitué on cherche la ville $i$ et la ville encore non incluse $k$ qui minimise la quantité $c(i,k)$ : c'est la ville la plus proche du tour. Une fois trouvée on insert cette ville à sa position optimale en trouvant l'arrête $(i,j)$ qui minimise $c(i,k) + c(k,j) - c(i,j)$
+Pour un tour partiel déjà constitué on cherche la ville $i$ et la ville encore non incluse $k$ qui minimise la quantité $c(i,k)$ : c'est **la ville la plus proche du tour**. Une fois trouvée on insert cette ville à sa position optimale en trouvant l'arrête $(i,j)$ qui minimise $c(i,k) + c(k,j) - c(i,j)$
 C'est ainsi l'insertion la plus proche. On pourra aussi répéter l'algorithme pour chacune des villes de départ.
 
-```{r}
+Un exemple avec une seule ville de départ: 
+
+```{r insert nearest}
 res3 <- greedy_TSP_min(villes)
-plot(tour = res3, data = villes)
+plot(x = res3, data = villes)
 (t3 <- tour_length(res3, villes))
 ```
 
@@ -111,26 +125,27 @@ plot(tour = res3, data = villes)
 
 Pour un tour partiel déjà constitué on cherche pour chaque ville non encore incluse $k$, la ville $i$ du tour la plus proche. On obtient des distances $c(i,k)$ avec autant de couples $(i,k)$ qu'il y a de villes non incluses. On sélectionne le plus grande de ces distances et la ville $k$ qui lui est associée. On insère cette ville $k$ à sa position optimale selon le critère habituel (min de $c(i,k) + c(k,j) - c(i,j)$). 
 
+Un exemple avec une seule ville de départ: 
 
-```{r}
+```{r insert farthest}
 res4 <- greedy_TSP_max(villes)
-plot(tour = res4, data = villes)
+plot(x = res4, data = villes)
 (t4 <- tour_length(res4, villes))
 ```
 
 Affichés tous ensemble :
 
-```{r, echo=FALSE}
+```{r plot all, echo=FALSE}
 par(mfrow=c(2,2),
     oma = c(5,4,0,0) + 0.1,
     mar = c(1.5,1.5,1,0) + 0.1)
-plot(tour = res1, data = villes, main = "NN", value = t1)
-plot(tour = res2, data = villes, main = "best", value = t2)
-plot(tour = res3, data = villes, main = "min", value = t3)
-plot(tour = res4, data = villes, main = "max", value = t4)
+plot(x = res1, data = villes, main = "NN", value = t1)
+plot(x = res2, data = villes, main = "best", value = t2)
+plot(x = res3, data = villes, main = "min", value = t3)
+plot(x = res4, data = villes, main = "max", value = t4)
 ```
 
-Il est possible dans ce cadre eucliden d'obtenir une [bornes sur la longueur du tour](http://www.cs.albany.edu/~res/tsp_sicomp_1977.pdf). Ces algorithmes heuristiques sont donc des algorithmes d'approximation (sauf peut-être pour *farthest*)!
+Il est possible dans ce cadre eucliden d'obtenir une [bornes sur la longueur du tour](http://www.cs.albany.edu/~res/tsp_sicomp_1977.pdf). **Ces algorithmes heuristiques sont donc des algorithmes d'approximation** (sauf peut-être pour *farthest*)!
 
 
 $$algo(cheapest) \le 2 \,algo(opt)$$
@@ -147,7 +162,8 @@ $$algo(farthest) \le (\lceil log_2(n) \rceil + 1) \,algo(opt)$$
 ## Pour les différents algorithmes heuristiques
 
 On répète 100 fois les 4 algorithmes sur des données générées par $\mathcal{U}[0,1] \times \mathcal{U}[0,1]$
-```{r, echo = FALSE, eval=TRUE}
+
+```{r repeat100, echo = FALSE, eval=TRUE}
 dist <- data.frame(matrix(0,100,4))
 colnames(dist) <- c("NN", "best", "min", "max")
 
@@ -165,24 +181,24 @@ for(i in 1:100)
 }
 ```
 
-```{r,echo = FALSE, eval=TRUE}
+```{r plot res violon,echo = FALSE, eval=TRUE}
 df <- melt(dist)
 ggplot(df, aes(x=variable, y=value)) + geom_violin()
 ```
 
 Rang moyen :
 
-```{r, echo=FALSE}
+```{r meanscol, echo=FALSE}
 colMeans(t(apply(dist,1,rank)))
 ```
 
 
-## Pour une distribution normale des villes
+## Pour une distribution normale des villes ?
 
 
 On répète 100 fois les 4 algorithmes sur des données normales générées par $\mathcal{N}(0,1) \times \mathcal{N}(0,1)$
 
-```{r, echo = FALSE, eval=TRUE}
+```{r repeatall100_2, echo = FALSE, eval=TRUE}
 dist <- data.frame(matrix(0,100,4))
 colnames(dist) <- c("NN", "best", "min", "max")
 
@@ -200,7 +216,7 @@ for(i in 1:100)
 }
 ```
 
-```{r,echo = FALSE, eval=TRUE}
+```{r plot violon,echo = FALSE, eval=TRUE}
 df <- melt(dist)
 ggplot(df, aes(x=variable, y=value)) + geom_violin()
 ```
@@ -216,7 +232,7 @@ colMeans(t(apply(dist,1,rank)))
 
 REPONSE (distribution uniforme): 
 
-```{r, echo = FALSE, eval=TRUE}
+```{r 100foisUnif, echo = FALSE, eval=TRUE}
 dist <- data.frame(matrix(0,100,4))
 colnames(dist) <- c("NN", "best", "min", "max")
 
@@ -304,13 +320,12 @@ dim(df)
 
 On lance la simulation sur plusieurs coeurs.
 
-```{r}
+```{r simu}
 nbCores <- 8
 j <- 1
 
 for(n in my_n_vector)
 {
-  print(n)
   liste1 <- mclapply(1:p, FUN = one.simu_time_TSP,
                       data = matrix(runif(2*n), n, 2),
                      algo = "NN",
@@ -325,12 +340,10 @@ for(n in my_n_vector)
                      data = matrix(runif(2*n), n, 2),
                      algo = "min",
                      mc.cores = nbCores)
-
   liste4 <- mclapply(1:p, FUN = one.simu_time_TSP,
                      data = matrix(runif(2*n), n, 2),
                      algo = "max",
                      mc.cores = nbCores)
-
 
   df[j ,] <- c("NN", n, do.call(cbind, liste1))
   df[j+1 ,] <- c("best", n, do.call(cbind, liste2))
@@ -375,7 +388,7 @@ theMax <- max(df_new[,3:5],df_new[,3:5])
 
 On trace différentes courbes. 
 
-```{r}
+```{r plot simu results}
 ggplot(df_new, aes(x = n, y = value, col=type)) +  scale_x_log10()+
   scale_y_log10(limits = c(theMin, theMax))  +
   labs(y = "time in seconds") +  labs(x = "number of cites") +
@@ -449,6 +462,7 @@ l4$coefficients
 
 - Evaluer le coefficient d'approximation des méthodes dans le cas d'une répartition uniforme et normale des villes
 
+- Trouver pour un temps maximal donné et un nombre de villes donnés quelle est la meilleure méthode à utiliser parmis toutes celles proposées ! 
 
 
 
