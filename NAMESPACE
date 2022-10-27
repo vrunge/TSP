@@ -1,5 +1,9 @@
 S3method(plot, TSP)
 exportPattern("^[[:alpha:]]+")
+useDynLib(TSP, .registration = TRUE)
+importFrom(Rcpp, evalCpp)
 importFrom("grDevices", "colorRamp", "rgb")
 importFrom("graphics", "segments", "title")
- importFrom("stats", "dist")
+importFrom("stats", "dist")
+
+

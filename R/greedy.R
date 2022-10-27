@@ -1,5 +1,12 @@
+##  GPL-3 License
+## Copyright (c) 2022 Vincent Runge
 
-
+#' Nearest Neighbour TSP
+#'
+#' @description Nearest Neighbour algorithm for TSP
+#' @param data matrix of positions for cities in (x,y)
+#' @param type "one" or "all" to start from one city only or to repeat the algorithm for all possible starting cities
+#' @return a vector of indices ("best" order of the cities to visit)
 NN_TSP <- function(data, type = "one")
 {
   n <- dim(data)[1]
@@ -48,10 +55,13 @@ NN_TSP <- function(data, type = "one")
   return(best_tour)
 }
 
-####################################################################################################
-####################################################################################################
-####################################################################################################
 
+#' Greedy TSP with closest city insertion
+#'
+#' @description Greedy TSP with  closest city insertion
+#' @param data matrix of positions for cities in (x,y)
+#' @param type "one" or "all" to start from one city only or to repeat the algorithm for all possible starting cities
+#' @return a vector of indices ("best" order of the cities to visit)
 greedy_TSP_min <- function(data, type = "one")
 {
   n <- dim(data)[1]
@@ -122,10 +132,12 @@ greedy_TSP_min <- function(data, type = "one")
 }
 
 
-####################################################################################################
-####################################################################################################
-####################################################################################################
-
+#' Greedy TSP with best distance insertion
+#'
+#' @description Greedy TSP with minimal distance insertion
+#' @param data matrix of positions for cities in (x,y)
+#' @param type "one" or "all" to start from one city only or to repeat the algorithm for all possible starting cities
+#' @return a vector of indices ("best" order of the cities to visit)
 greedy_TSP_best <- function(data, type = "one")
 {
   n <- dim(data)[1]
@@ -180,10 +192,12 @@ greedy_TSP_best <- function(data, type = "one")
 }
 
 
-####################################################################################################
-####################################################################################################
-####################################################################################################
-
+#' Greedy TSP with farthest city insertion
+#'
+#' @description Greedy TSP with farthest city insertion
+#' @param data matrix of positions for cities in (x,y)
+#' @param type "one" or "all" to start from one city only or to repeat the algorithm for all possible starting cities
+#' @return a vector of indices ("best" order of the cities to visit)
 greedy_TSP_max <- function(data, type = "one")
 {
   if(type == "all"){return(greedy_TSP_max_all(data))}
@@ -238,7 +252,6 @@ greedy_TSP_max <- function(data, type = "one")
   }
 
 
-
   attr(tour, "class") <- "TSP"
 
   return(tour)
@@ -247,6 +260,11 @@ greedy_TSP_max <- function(data, type = "one")
 
 
 
+#' greedy_TSP_max_all
+#'
+#' @description greedy_TSP_max_all
+#' @param data matrix of positions for cities in (x,y)
+#' @return a vector of indices ("best" order of the cities to visit)
 greedy_TSP_max_all <- function(data)
 {
   n <- dim(data)[1]
